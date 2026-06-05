@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Caixinha de Ideias</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0e0e10;
+    --surface: #18181c;
+    --surface2: #1f1f25;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.13);
+    --text: #f0ede8;
+    --text2: #8a8890;
+    --text3: #555360;
+    --accent: #c8f04a;
+    --accent2: #7b6ef6;
+    --accent3: #f06a4a;
+    --accent4: #4ac8f0;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    padding: 0;
+    overflow-x: hidden;
+  }
+
+  /* Background grain */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  .page { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 3rem 1.5rem 5rem; }
+
+  /* Header */
+  .header { margin-bottom: 3rem; }
+  .header-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 0.5rem; }
+  .box-icon {
+    width: 48px; height: 48px;
+    background: var(--accent);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-bottom: 1.2rem;
+  }
+  .box-icon svg { width: 26px; height: 26px; }
+  h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 400;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+  h1 span { color: var(--accent); }
+  .subtitle { font-size: 14px; color: var(--text2); margin-top: 0.75rem; font-weight: 400; letter-spacing: 0.01em; }
+
+  /* Stats bar */
+  .stats-bar {
+    display: flex; gap: 1.5rem;
+    margin: 2rem 0;
+    padding: 1rem 1.25rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+  }
+  .stat { display: flex; flex-direction: column; gap: 2px; }
+  .stat-label { color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; font-size: 10px; }
+  .stat-value { color: var(--text); font-size: 18px; font-weight: 500; }
+
+  /* Grid */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; margin-bottom: 2rem; }
+
+  /* Card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.25rem;
+    display: flex; flex-direction: column;
+    gap: 12px;
+    transition: border-color 0.2s, transform 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--card-accent, var(--accent));
+    opacity: 0.7;
+  }
+  .card:hover { border-color: var(--border2); transform: translateY(-2px); }
+
+  .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+  .card-title { font-size: 15px; font-weight: 600; color: var(--text); line-height: 1.35; }
+  .badge {
+    font-size: 10px;
+    font-family: 'DM Mono', monospace;
+    padding: 3px 8px;
+    border-radius: 999px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+  .badge-ar { background: rgba(75,200,240,0.12); color: var(--accent4); border: 1px solid rgba(75,200,240,0.2); }
+  .badge-rv { background: rgba(123,110,246,0.12); color: var(--accent2); border: 1px solid rgba(123,110,246,0.2); }
+  .badge-pc { background: rgba(200,240,74,0.10); color: var(--accent); border: 1px solid rgba(200,240,74,0.2); }
+  .badge-outro { background: rgba(240,106,74,0.12); color: var(--accent3); border: 1px solid rgba(240,106,74,0.2); }
+
+  .card-desc { font-size: 13px; color: var(--text2); line-height: 1.65; font-weight: 400; }
+
+  .card-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag {
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: var(--surface2);
+    color: var(--text3);
+    border: 1px solid var(--border);
+  }
+
+  .card-footer { display: flex; align-items: center; justify-content: space-between; padding-top: 10px; border-top: 1px solid var(--border); margin-top: auto; }
+  .card-cost { font-size: 12px; font-family: 'DM Mono', monospace; color: var(--text3); }
+  .card-cost strong { color: var(--accent); }
+  .btn-delete {
+    background: none; border: none; cursor: pointer;
+    color: var(--text3); font-size: 18px; line-height: 1;
+    padding: 2px 4px; border-radius: 6px;
+    transition: color 0.15s, background 0.15s;
+  }
+  .btn-delete:hover { color: var(--accent3); background: rgba(240,106,74,0.1); }
+
+  /* Divider */
+  .divider {
+    display: flex; align-items: center; gap: 12px;
+    margin: 2.5rem 0 1.5rem;
+    color: var(--text3);
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .divider::before, .divider::after {
+    content: ''; flex: 1;
+    height: 1px; background: var(--border);
+  }
+
+  /* Form */
+  .form-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.5rem;
+  }
+  .form-card h3 { font-size: 14px; font-weight: 600; color: var(--text2); margin-bottom: 1.25rem; text-transform: uppercase; letter-spacing: 0.08em; font-family: 'DM Mono', monospace; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-group label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.07em; font-family: 'DM Mono', monospace; }
+  .form-group input, .form-group select, .form-group textarea {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: var(--text);
+    font-size: 13px;
+    font-family: 'Syne', sans-serif;
+    outline: none;
+    transition: border-color 0.15s;
+    width: 100%;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--border2); }
+  .form-group textarea { resize: vertical; min-height: 72px; }
+  .form-group select option { background: #1f1f25; }
+  .form-actions { display: flex; justify-content: flex-end; margin-top: 12px; }
+  .btn-save {
+    background: var(--accent);
+    color: #0e0e10;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 20px;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: 'Syne', sans-serif;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+    letter-spacing: 0.02em;
+  }
+  .btn-save:hover { opacity: 0.88; }
+  .btn-save:active { transform: scale(0.97); }
+
+  .empty {
+    grid-column: 1/-1;
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text3);
+    font-size: 14px;
+    border: 1px dashed var(--border);
+    border-radius: 16px;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: var(--accent); color: #0e0e10;
+    padding: 10px 20px; border-radius: 999px;
+    font-size: 13px; font-weight: 700;
+    transition: transform 0.3s cubic-bezier(.34,1.56,.64,1);
+    pointer-events: none; z-index: 99;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 520px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .stats-bar { flex-wrap: wrap; gap: 1rem; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <div class="box-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#0e0e10" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+        <path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>
+      </svg>
+    </div>
+    <h1>Caixinha de <span>Ideias</span></h1>
+    <p class="subtitle">Guarde seus projetos para desenvolver quando tiver tempo.</p>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat"><span class="stat-label">Total</span><span class="stat-value" id="stat-total">0</span></div>
+    <div class="stat"><span class="stat-label">RA</span><span class="stat-value" id="stat-ar">0</span></div>
+    <div class="stat"><span class="stat-label">RV</span><span class="stat-value" id="stat-rv">0</span></div>
+    <div class="stat"><span class="stat-label">PC</span><span class="stat-value" id="stat-pc">0</span></div>
+  </div>
+
+  <div class="grid" id="ideas-grid"></div>
+
+  <div class="divider">nova ideia</div>
+
+  <div class="form-card">
+    <h3>+ Guardar ideia</h3>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Nome da ideia</label>
+        <input type="text" id="f-title" placeholder="Ex: App de RA com papelão" />
+      </div>
+      <div class="form-group">
+        <label>Categoria</label>
+        <select id="f-badge">
+          <option value="badge-pn">PN Project</option>
+          <option value="badge-ar">Realidade Aumentada</option>
+          <option value="badge-rv">Realidade Virtual</option>
+          <option value="badge-ai">Inteligência Artificial</option>
+          <option value="badge-life">Projeto de Vida</option>
+          <option value="badge-py">Projeto Python</option>
+          <option value="badge-pc">Progama PC</option>
+          <option value="badge-iot">Projeto IoT</option>
+          <option value="badge-estudo">Estudos</option>
+          <option value="badge-time">Passa-tempo</option>
+          <option value="badge-outro">Outros</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:10px">
+      <label>Descrição</label>
+      <textarea id="f-desc" placeholder="Descreva a ideia, tecnologias, objetivo..."></textarea>
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Tags (separadas por vírgula)</label>
+        <input type="text" id="f-tags" placeholder="Ex: Unity, Python, ARCore" />
+      </div>
+      <div class="form-group">
+        <label>Custo estimado</label>
+        <input type="text" id="f-cost" placeholder="Ex: R$200,00" />
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn-save" onclick="saveIdea()">Guardar na caixinha</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_KEY = 'caixinha-ideias-v1';
+
+const defaults = [
+  {
+    id: 1,
+    title: "Ideia de Exemplo",
+    badge: "badge-Outros",
+    desc: "Criar caixinha de ideias onde os dados ficam salvos apenas no navegador do usuário, e ele pode colocar suas ideias e acessar depois no seu PC ou Celular quando quiser desenvolver. As ideias podem ser apagadas a qualquer momento, e o link da ferramenta pode ser compartilhado, ainda assim as ideias ficam privadas. Se quiser mecher no código, pode copiar ou acessar o repositório no GitHub: ",
+    tags: ["Ideias", "Caixinha", "HTML", "IA", "Organização"],
+    cost: "~R$20,90 - R$40,00"
+  },
+];
+
+const accentMap = {
+  'badge-pn': 'var(--accent)',
+  'badge-ar': 'var(--accent4)',
+  'badge-rv': 'var(--accent4)',
+  'badge-ai': 'var(--accent4)',
+  'badge-life': 'var(--accent)',
+  'badge-py': 'var(--accent4)',
+  'badge-pc': 'var(--accent4)',
+  'badge-iot': 'var(--accent4)',
+  'badge-estudo': 'var(--accent)',
+  'badge-time': 'var(--accent3)',
+  'badge-outro': 'var(--accent3)'
+};
+
+const labelMap = {
+  'badge-pn': 'PN Project',
+  'badge-ar': 'RA',
+  'badge-rv': 'VR',
+  'badge-ai': 'AI',
+  'badge-life': 'Life',
+  'badge-py': '.Py',
+  'badge-iot': 'IoT',
+  'badge-pc': 'PC',
+  'badge-estudo': 'Estudos',
+  'badge-time': 'Passa-tempo',
+  'badge-outro': 'Outros'
+};
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [...defaults];
+  } catch { return [...defaults]; }
+}
+
+function save(ideas) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(ideas)); } catch {}
+}
+
+function render() {
+  const ideas = load();
+  const grid = document.getElementById('ideas-grid');
+
+  document.getElementById('stat-total').textContent = ideas.length;
+  document.getElementById('stat-ar').textContent = ideas.filter(i => i.badge === 'badge-ar').length;
+  document.getElementById('stat-rv').textContent = ideas.filter(i => i.badge === 'badge-rv').length;
+  document.getElementById('stat-pc').textContent = ideas.filter(i => i.badge === 'badge-pc').length;
+
+  if (ideas.length === 0) {
+    grid.innerHTML = '<div class="empty">Nenhuma ideia guardada ainda.<br>Adicione a primeira abaixo!</div>';
+    return;
+  }
+
+  grid.innerHTML = ideas.map(idea => `
+    <div class="card" style="--card-accent: ${accentMap[idea.badge] || 'var(--accent)'}">
+      <div class="card-top">
+        <div class="card-title">${esc(idea.title)}</div>
+        <span class="badge ${idea.badge}">${labelMap[idea.badge] || 'Outro'}</span>
+      </div>
+      <div class="card-desc">${esc(idea.desc)}</div>
+      ${idea.tags && idea.tags.length ? `<div class="card-tags">${idea.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div>` : ''}
+      <div class="card-footer">
+        <div class="card-cost">custo: <strong>${esc(idea.cost || 'a definir')}</strong></div>
+        <button class="btn-delete" onclick="deleteIdea(${idea.id})" title="Remover ideia">×</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function esc(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function deleteIdea(id) {
+  const ideas = load().filter(i => i.id !== id);
+  save(ideas);
+  render();
+  showToast('Ideia removida');
+}
+
+function saveIdea() {
+  const title = document.getElementById('f-title').value.trim();
+  const badge = document.getElementById('f-badge').value;
+  const desc = document.getElementById('f-desc').value.trim();
+  const tags = document.getElementById('f-tags').value.split(',').map(t => t.trim()).filter(Boolean);
+  const cost = document.getElementById('f-cost').value.trim() || 'a definir';
+
+  if (!title || !desc) { showToast('Preencha o nome e a descrição!'); return; }
+
+  const ideas = load();
+  ideas.push({ id: Date.now(), title, badge, desc, tags, cost });
+  save(ideas);
+  render();
+  showToast('Ideia guardada!');
+
+  document.getElementById('f-title').value = '';
+  document.getElementById('f-desc').value = '';
+  document.getElementById('f-tags').value = '';
+  document.getElementById('f-cost').value = '';
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+render();
+</script>
+</body>
+</html>
